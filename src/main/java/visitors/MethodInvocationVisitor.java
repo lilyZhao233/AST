@@ -1,18 +1,25 @@
 package visitors;
 
 import bean.ExceptionBean;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.*;
 import util.StringUtil;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MethodInvocationVisitor extends ASTVisitor{
     private List<ExceptionBean> exceptionBeanList;
     MethodDeclaration methodDeclaration;
+    Map<String,String> comments=new HashMap<String, String>();
 
-    public MethodInvocationVisitor(List<ExceptionBean> exceptionBeans,MethodDeclaration node){
+    public MethodInvocationVisitor(List<ExceptionBean> exceptionBeans,MethodDeclaration node,Map<String,String> comments){
         this.exceptionBeanList=exceptionBeans;
         this.methodDeclaration=node;
+        this.comments=comments;
     }
 
     /**
@@ -27,9 +34,13 @@ public class MethodInvocationVisitor extends ASTVisitor{
             ITypeBinding exceptionTypes[]= m.getExceptionTypes();
             if(exceptionTypes.length>0){
                 for(ITypeBinding iTypeBinding:exceptionTypes){
-                    String thrown=iTypeBinding.getName();
+                    String thrown=iTypeBinding.getPackage()+iTypeBinding.getName();
                     boolean hasType=false;
                     ExceptionBean exceptionBean=new ExceptionBean();
+                    if(comments.containsKey(iTypeBinding.getName())){
+                        System.out.println(thrown);
+                        exceptionBean.setExceptionComment(comments.get(iTypeBinding.getName()));
+                    }
                     exceptionBean.setThrown(thrown);
                     exceptionBean.setMethod(node.getName().toString());
                     exceptionBean.setBlock(methodDeclaration.toString());
@@ -86,7 +97,12 @@ public class MethodInvocationVisitor extends ASTVisitor{
                             node1=node1.getParent();
                         }
                     }
-                    exceptionBean.setStatement(String.valueOf(node1.getNodeType()));
+                    if(node1 instanceof ForStatement){
+                        exceptionBean.setHasForStat(true);
+                    }else{
+                        exceptionBean.setHasForStat(false);
+                    }
+
                     exceptionBean.setPackages(methodDeclaration.resolveBinding().getDeclaringClass().getPackage().getName());
                     //判断是不是有注释
                     if(methodDeclaration.getJavadoc()!=null){
@@ -108,15 +124,28 @@ public class MethodInvocationVisitor extends ASTVisitor{
      *  @param node
      */
     @Override
-    public void endVisit(ClassInstanceCreation node) {
+    public void endVisit(ClassInstanceCreation node){
         IMethodBinding method = node.resolveConstructorBinding();
         if (method != null) {
             ITypeBinding exceptionTypes[] = method.getExceptionTypes();
             if (exceptionTypes.length > 0) {
                 for (ITypeBinding iTypeBinding : exceptionTypes) {
-                    String thrown = iTypeBinding.getName();
+                    String thrown=iTypeBinding.getPackage()+"."+iTypeBinding.getName();
+
                     boolean hasType = false;
                     ExceptionBean exceptionBean = new ExceptionBean();
+                    IJavaElement iJavaElement=iTypeBinding.getJavaElement();
+                    IType iType= (IType) iJavaElement;
+                    if(iType!=null) {
+                        try {
+                            if (iType.getAttachedJavadoc(null) != null) {
+                                exceptionBean.setExceptionComment(iType.getAttachedJavadoc(null));
+                            }
+                        } catch (JavaModelException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
                     exceptionBean.setThrown(thrown);
                     exceptionBean.setMethod(node.toString());
                     exceptionBean.setBlock(methodDeclaration.toString());
@@ -176,7 +205,12 @@ public class MethodInvocationVisitor extends ASTVisitor{
 
                     }
 
-                    exceptionBean.setStatement(String.valueOf(node1.getNodeType()));
+                    if(node1 instanceof ForStatement){
+                        exceptionBean.setHasForStat(true);
+                    }else{
+                        exceptionBean.setHasForStat(false);
+                    }
+
                     exceptionBean.setPackages(methodDeclaration.resolveBinding().getDeclaringClass().getPackage().getName());
                     //判断是不是有注释
                     if (methodDeclaration.getJavadoc() != null) {

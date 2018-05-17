@@ -18,7 +18,7 @@ public class ExceptionBean {
 
     private String exceptionComment;
 
-    private String statement;
+    private boolean hasForStat;
 
     public String getType() {
         return type;
@@ -68,12 +68,12 @@ public class ExceptionBean {
         this.packages = packages;
     }
 
-    public String getStatement() {
-        return statement;
+    public boolean isHasForStat() {
+        return hasForStat;
     }
 
-    public void setStatement(String statement) {
-        this.statement = statement;
+    public void setHasForStat(boolean hasForStat) {
+        this.hasForStat = hasForStat;
     }
 
     public String getMethodComment() {
