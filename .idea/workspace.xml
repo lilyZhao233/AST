@@ -2,17 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="619413a7-5fd8-4df3-8099-c5ef70a5562f" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/java/util/RootExceptionUtil.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/test/ASTTester.class" afterPath="$PROJECT_DIR$/target/classes/test/ASTTester.class" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/util/StringUtil.class" afterPath="$PROJECT_DIR$/target/classes/util/StringUtil.class" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/visitors/MethodDeclarationVisitor.class" afterPath="$PROJECT_DIR$/target/classes/visitors/MethodDeclarationVisitor.class" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/visitors/MethodInvocationVisitor.class" afterPath="$PROJECT_DIR$/target/classes/visitors/MethodInvocationVisitor.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/bean/ExceptionBean.java" afterPath="$PROJECT_DIR$/src/main/java/bean/ExceptionBean.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/test/ASTTester.java" afterPath="$PROJECT_DIR$/src/main/java/test/ASTTester.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/util/StringUtil.java" afterPath="$PROJECT_DIR$/src/main/java/util/StringUtil.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/visitors/MethodInvocationVisitor.java" afterPath="$PROJECT_DIR$/src/main/java/visitors/MethodInvocationVisitor.java" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -522,7 +516,7 @@
       <workItem from="1526452863017" duration="14306000" />
       <workItem from="1526479736047" duration="7023000" />
       <workItem from="1526618556370" duration="54000" />
-      <workItem from="1526705873115" duration="6148000" />
+      <workItem from="1526705873115" duration="6278000" />
     </task>
     <task id="LOCAL-00001" summary="项目初始化">
       <created>1526195533629</created>
@@ -538,11 +532,18 @@
       <option name="project" value="LOCAL" />
       <updated>1526528301233</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="1.添加for循环判断&#10;2.添加了父异常&#10;3.完整的包名">
+      <created>1526712788565</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1526712788565</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="86960000" />
+    <option name="totallyTimeSpent" value="87090000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-9" y="-9" width="1938" height="1048" extended-state="6" />
@@ -588,7 +589,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="项目初始化" />
     <MESSAGE value="添加异常注释" />
-    <option name="LAST_COMMIT_MESSAGE" value="添加异常注释" />
+    <MESSAGE value="1.添加for循环判断&#10;2.添加了父异常&#10;3.完整的包名" />
+    <option name="LAST_COMMIT_MESSAGE" value="1.添加for循环判断&#10;2.添加了父异常&#10;3.完整的包名" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
