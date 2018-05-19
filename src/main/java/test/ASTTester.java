@@ -28,12 +28,12 @@ public class ASTTester {
 
 
     public static void main(String[] args) throws CoreException, SQLException, ClassNotFoundException {
-
-        String[] classpath = {"C:\\Users\\13422\\Documents\\Git\\tomcatsrc\\lib"};
-       File dir=new File("C:\\Users\\13422\\Documents\\Git\\tomcatsrc\\java");
+//C:\Users\MIC\Documents\Tencent Files\1332980482\FileRecv
+        String[] classpath = {"C:\\Users\\MIC\\Documents\\Tencent Files\\1332980482\\FileRecv\\tomcatsrc\\lib"};
+       File dir=new File("C:\\Users\\MIC\\Documents\\Tencent Files\\1332980482\\FileRecv\\tomcatsrc\\java");
 //       List<String> strings=new ArrayList<String>();
 //       getSources(dir,strings);
-       String [] sources={"C:\\Users\\13422\\Documents\\Git\\tomcatsrc\\java"};
+       String [] sources={"C:\\Users\\MIC\\Documents\\Tencent Files\\1332980482\\FileRecv\\tomcatsrc\\java"};
 //       strings.toArray(sources);
        List<File> fileList=new ArrayList<File>();
        FileFilter fileFilter=new Filterbyjava(".java");
@@ -51,24 +51,43 @@ public class ASTTester {
         }
         String result="";
         String str="";
+        String result1="";
+        String str1="";
         int i=0;
         for(ExceptionBean exceptionBean:exceptionBeans){
 
-            str="ID "+i+"========================================================================="+
-                    "type: "+exceptionBean.getType()+"\n"+
-                    "package: "+exceptionBean.getPackages()+"\n"+
-                    "method: "+exceptionBean.getMethod()+"\n"+
-                    "hasForStatement: "+exceptionBean.isHasForStat()+"\n"+
-                    "parentException: "+exceptionBean.getParentException()+"\n"+
-                    "thrown: "+exceptionBean.getThrown()+"\n"+
-                    "exception comment: "+exceptionBean.getExceptionComment()+"\n"+
-                    "method comment: "+exceptionBean.getMethodComment()+"\n"+
-                    "catch: \n"+exceptionBean.getCatched()+"\n"+
-                    "block: \n"+exceptionBean.getBlock()+"\n";
-            result+=str;
-            i++;
+//            str="ID "+i+"========================================================================="+
+//                    "type: "+exceptionBean.getType()+"\n"+
+//                    "package: "+exceptionBean.getPackages()+"\n"+
+//                    "method: "+exceptionBean.getMethod()+"\n"+
+//                    "hasForStatement: "+exceptionBean.isHasForStat()+"\n"+
+//                    "parentException: "+exceptionBean.getParentException()+"\n"+
+//                    "thrown: "+exceptionBean.getThrown()+"\n"+
+//                    "exception comment: "+exceptionBean.getExceptionComment()+"\n"+
+//                    "method comment: "+exceptionBean.getMethodComment()+"\n"+
+//                    "catch: \n"+exceptionBean.getCatched()+"\n"+
+//                    "block: \n"+exceptionBean.getBlock()+"\n";
+//            result+=str;
+//            i++;
+            String mc,ec;
+            if(exceptionBean.getMethodComment()!=null) {
+                String[] methodCom = exceptionBean.getMethodComment().split("\n");
+                mc = methodCom[1];
+            }else {
+                mc="null";
+            }
+            if(exceptionBean.getExceptionComment()!=null){
+                String[] exceptionCom = exceptionBean.getExceptionComment().split("\n");
+                ec=exceptionCom[1];
+            }else{
+                 ec = "null";
+            }
+            str1 = exceptionBean.getType()+" "+exceptionBean.getPackages()+" "+exceptionBean.getMethod()+" "+exceptionBean.isHasForStat()+" "+
+                    exceptionBean.getParentException()+" "+exceptionBean.getThrown()+" "+ec+" "+ mc+" " + exceptionBean.getCatched()+"\n";
+            result1+=str1;
         }
-        WriteToFileUtil.write("tomcat0519_2.txt",result);
+//        WriteToFileUtil.write("tomcat0519_2.txt",result);
+        WriteToFileUtil.write("tomcat.txt",result1);
 //        PreparedStatement psql;
 //        psql = SQLUtil.getCon("RH_Exception").prepareStatement("insert into e_comment (name,comment) "
 //                + "values(?,?)");
