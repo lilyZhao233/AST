@@ -11,6 +11,8 @@ import java.util.*;
 import bean.CommentException;
 import bean.ExceptionBean;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.*;
@@ -28,10 +30,10 @@ public class ASTTester {
     public static void main(String[] args) throws CoreException, SQLException, ClassNotFoundException {
 
         String[] classpath = {"C:\\Users\\13422\\Documents\\Git\\tomcatsrc\\lib"};
-       File dir=new File("D:\\src");
+       File dir=new File("C:\\Users\\13422\\Documents\\Git\\tomcatsrc\\java");
 //       List<String> strings=new ArrayList<String>();
 //       getSources(dir,strings);
-       String [] sources={"D:\\src"};
+       String [] sources={"C:\\Users\\13422\\Documents\\Git\\tomcatsrc\\java"};
 //       strings.toArray(sources);
        List<File> fileList=new ArrayList<File>();
        FileFilter fileFilter=new Filterbyjava(".java");
@@ -50,21 +52,23 @@ public class ASTTester {
         String result="";
         String str="";
         int i=0;
-//        for(ExceptionBean exceptionBean:exceptionBeans){
-//
-//            str="ID "+i+"========================================================================="+
-//                    "type: "+exceptionBean.getType()+"\n"+
-//                    "package: "+exceptionBean.getPackages()+"\n"+
-//                    "method: "+exceptionBean.getMethod()+"\n"+
-//                    "statement: "+exceptionBean.isHasForStat()+"\n"+
-//                    "thrown: "+exceptionBean.getThrown()+"\n"+
-//                    "comment: "+exceptionBean.getMethodComment()+"\n"+
-//                    "catch: \n"+exceptionBean.getCatched()+"\n"+
-//                    "block: \n"+exceptionBean.getBlock()+"\n";
-//            result+=str;
-//            i++;
-//        }
-//        WriteToFileUtil.write("tomcat0509.txt",result);
+        for(ExceptionBean exceptionBean:exceptionBeans){
+
+            str="ID "+i+"========================================================================="+
+                    "type: "+exceptionBean.getType()+"\n"+
+                    "package: "+exceptionBean.getPackages()+"\n"+
+                    "method: "+exceptionBean.getMethod()+"\n"+
+                    "hasForStatement: "+exceptionBean.isHasForStat()+"\n"+
+                    "parentException: "+exceptionBean.getParentException()+"\n"+
+                    "thrown: "+exceptionBean.getThrown()+"\n"+
+                    "exception comment: "+exceptionBean.getExceptionComment()+"\n"+
+                    "method comment: "+exceptionBean.getMethodComment()+"\n"+
+                    "catch: \n"+exceptionBean.getCatched()+"\n"+
+                    "block: \n"+exceptionBean.getBlock()+"\n";
+            result+=str;
+            i++;
+        }
+        WriteToFileUtil.write("tomcat0519_2.txt",result);
 //        PreparedStatement psql;
 //        psql = SQLUtil.getCon("RH_Exception").prepareStatement("insert into e_comment (name,comment) "
 //                + "values(?,?)");
@@ -84,8 +88,12 @@ public class ASTTester {
             parser.setKind(ASTParser.K_COMPILATION_UNIT);
 
             parser.setBindingsRecovery(true);
-
             Map options = JavaCore.getOptions();
+            options.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_1_8);
+            options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JavaCore.VERSION_1_8);
+            options.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_1_8);
+            parser.setProject(null);
+
             parser.setCompilerOptions(options);
 
             parser.setEnvironment(classpath, sources, new String[] { "UTF-8"}, true);

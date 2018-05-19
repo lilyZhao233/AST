@@ -1,24 +1,54 @@
 package bean;
 
+import java.util.List;
+
 public class ExceptionBean {
 
-    private String type;
+    private String type;                     //分的类别
 
-    private String thrown;
+    private String thrown;                    //抛出的异常的全名
 
-    private String catched;
+    private String catched;                   //catch的语句块
 
-    private String block;
+    private String block;                     //整体的方法的代码块
 
-    private String method;
+    private String method;                    //调用方法的全名
 
-    private String packages;
+    private String packages;                  //调用方法在调用文件的包名
 
-    private String methodComment;
+    private String methodComment;             //调用方法所在方法的注释
 
-    private String exceptionComment;
+    private String exceptionComment;          //异常本身的注释
 
-    private boolean hasForStat;
+    private boolean hasForStat;                //异常周围是不是有for循环
+
+    private boolean isOrigin;                  //是不是java本身的异常
+
+    private List<String> parents;              //该异常的父类
+
+    public String getParentException(){
+        String str="";
+        if(parents!=null) {
+            for (String s : parents) {
+                 str=str+s+" ";
+            }
+        }
+        return str;
+    }
+    public List<String> getParents() {
+        return parents;
+    }
+
+    public void setParents(List<String> parents) {
+        this.parents = parents;
+    }
+    public boolean isOrigin() {
+        return isOrigin;
+    }
+
+    public void setOrigin(boolean origin) {
+        isOrigin = origin;
+    }
 
     public String getType() {
         return type;

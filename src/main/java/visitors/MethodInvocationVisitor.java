@@ -1,12 +1,11 @@
 package visitors;
 
 import bean.ExceptionBean;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.*;
+import util.RootExceptionUtil;
 import util.StringUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,94 +27,7 @@ public class MethodInvocationVisitor extends ASTVisitor{
      */
     @Override
     public void endVisit(MethodInvocation node) {
-        IMethodBinding m = node.resolveMethodBinding();
-        if(m!=null){
-            //判断是否原方法是不是抛出异常
-            ITypeBinding exceptionTypes[]= m.getExceptionTypes();
-            if(exceptionTypes.length>0){
-                for(ITypeBinding iTypeBinding:exceptionTypes){
-                    String thrown=iTypeBinding.getPackage()+iTypeBinding.getName();
-                    boolean hasType=false;
-                    ExceptionBean exceptionBean=new ExceptionBean();
-                    if(comments.containsKey(iTypeBinding.getName())){
-                        System.out.println(thrown);
-                        exceptionBean.setExceptionComment(comments.get(iTypeBinding.getName()));
-                    }
-                    exceptionBean.setThrown(thrown);
-                    exceptionBean.setMethod(node.getName().toString());
-                    exceptionBean.setBlock(methodDeclaration.toString());
-                    ASTNode node1=node.getParent();
-                    //判断离这个语句最近的语句的类型
-                    while (!(node1 instanceof TryStatement
-                            ||node1 instanceof MethodDeclaration)){
-                        node1=node1.getParent();
-                    }
-                    //如果是包含在try catch块中则统计最近的catch块里的内容
-                    if(node1 instanceof TryStatement){
-                        List catchCauses=((TryStatement) node1).catchClauses();
-                        for (Object catchClause : catchCauses) {
-                            CatchClause catchClause1= (CatchClause) catchClause;
-                            if (catchClause.toString().contains(thrown)) {
-                                hasType = true;
-                                exceptionBean.setCatched(catchClause.toString());
-                                if (catchClause1.getBody().toString().contains("throw new")) {
-                                    exceptionBean.setType("Rethrow");
-                                } else if (catchClause1.getBody()==null||
-                                        catchClause1.getBody().toString().contains("log") ||
-                                        catchClause.toString().contains("Log")
-                                        || StringUtil.replaceBlank(catchClause1.getBody().toString()).equals("{}")) {
-                                    exceptionBean.setType("Ignore_Log");
-                                } else {
-                                    exceptionBean.setType("Recover");
-                                }
-                            }
-                        }
-                        node1=node1.getParent();
-                        while (!(node1 instanceof TryStatement
-                                ||node1 instanceof ForStatement
-                                ||node1 instanceof WhileStatement
-                                ||node1 instanceof DoStatement
-                                ||node1 instanceof SwitchStatement
-                                ||node1 instanceof ThrowStatement
-                                ||node1 instanceof IfStatement
-                                ||node1 instanceof MethodDeclaration)){
-                            node1=node1.getParent();
-                        }
-                    }
-
-                    if(!hasType){
-                        exceptionBean.setType("only_throws");
-                        node1=node.getParent();
-                        while (!(node1 instanceof TryStatement
-                                ||node1 instanceof ForStatement
-                                ||node1 instanceof WhileStatement
-                                ||node1 instanceof DoStatement
-                                ||node1 instanceof SwitchStatement
-                                ||node1 instanceof ThrowStatement
-                                ||node1 instanceof IfStatement
-                                ||node1 instanceof MethodDeclaration)){
-                            node1=node1.getParent();
-                        }
-                    }
-                    if(node1 instanceof ForStatement){
-                        exceptionBean.setHasForStat(true);
-                    }else{
-                        exceptionBean.setHasForStat(false);
-                    }
-
-                    exceptionBean.setPackages(methodDeclaration.resolveBinding().getDeclaringClass().getPackage().getName());
-                    //判断是不是有注释
-                    if(methodDeclaration.getJavadoc()!=null){
-                        exceptionBean.setMethodComment(methodDeclaration.getJavadoc().toString());
-                    }
-
-                    exceptionBeanList.add(exceptionBean);
-                }
-
-
-            }
-        }
-
+        getExceptions(node);
         super.endVisit(node);
     }
 
@@ -125,101 +37,79 @@ public class MethodInvocationVisitor extends ASTVisitor{
      */
     @Override
     public void endVisit(ClassInstanceCreation node){
-        IMethodBinding method = node.resolveConstructorBinding();
-        if (method != null) {
-            ITypeBinding exceptionTypes[] = method.getExceptionTypes();
-            if (exceptionTypes.length > 0) {
-                for (ITypeBinding iTypeBinding : exceptionTypes) {
-                    String thrown=iTypeBinding.getPackage()+"."+iTypeBinding.getName();
+        getExceptions(node);
+        super.endVisit(node);
+    }
 
-                    boolean hasType = false;
-                    ExceptionBean exceptionBean = new ExceptionBean();
-                    IJavaElement iJavaElement=iTypeBinding.getJavaElement();
-                    IType iType= (IType) iJavaElement;
-                    if(iType!=null) {
-                        try {
-                            if (iType.getAttachedJavadoc(null) != null) {
-                                exceptionBean.setExceptionComment(iType.getAttachedJavadoc(null));
-                            }
-                        } catch (JavaModelException e) {
-                            e.printStackTrace();
-                        }
+    /**
+     * 判断外层有没有for循环
+     * @param methodInvocation
+     * @return
+     */
+
+    private static boolean hasForStat(ASTNode methodInvocation) {
+        boolean hasForStat=false;
+        ASTNode node=methodInvocation;
+        while(!(node instanceof MethodDeclaration||node==null ||node instanceof TypeDeclaration)) {
+            if(node instanceof ForStatement||node instanceof WhileStatement||node instanceof DoStatement) {
+                hasForStat=true;
+                return hasForStat;
+            }
+            node =node.getParent();
+        }
+        return hasForStat;
+    }
+
+    /**
+     * 对node进行解析获得解析后我们所要的相关属性
+     * @param node
+     */
+    private void getExceptions(ASTNode node){
+        IMethodBinding m=null;
+        if (node instanceof MethodInvocation) {
+            m = ((MethodInvocation) node).resolveMethodBinding();
+        }else if(node instanceof ClassInstanceCreation){
+            m=((ClassInstanceCreation) node).resolveConstructorBinding();
+        }
+
+        if(m!=null){
+            //判断是否原方法是不是抛出异常
+            ITypeBinding exceptionTypes[]= m.getExceptionTypes();
+            if(exceptionTypes.length>0){
+                for(ITypeBinding iTypeBinding:exceptionTypes){
+                    String thrown=iTypeBinding.getPackage().getName()+"."+iTypeBinding.getName();
+                    ExceptionBean exceptionBean=new ExceptionBean();
+                    if(comments.containsKey(iTypeBinding.getName())){
+                        exceptionBean.setExceptionComment(comments.get(iTypeBinding.getName()));
                     }
-
                     exceptionBean.setThrown(thrown);
-                    exceptionBean.setMethod(node.toString());
+                    System.out.println(m.getDeclaringClass().getPackage().getName()+"."+m.getName());
+                    exceptionBean.setMethod(m.getDeclaringClass().getPackage().getName()+"."+m.getName());
                     exceptionBean.setBlock(methodDeclaration.toString());
-                    ASTNode node1 = node.getParent();
-                    //判断离这个语句最近的语句的类型
-                    while (!(node1 instanceof TryStatement
-                            || node1 instanceof MethodDeclaration)) {
-                        node1 = node1.getParent();
-                    }
-                    //如果是包含在try catch块中则统计最近的catch块里的内容
-                    if (node1 instanceof TryStatement) {
-                        List catchCauses = ((TryStatement) node1).catchClauses();
-                        for (Object catchClause : catchCauses) {
-                            CatchClause catchClause1= (CatchClause) catchClause;
-                            if (catchClause.toString().contains(thrown)) {
-                                hasType = true;
-                                exceptionBean.setCatched(catchClause.toString());
-                                if (catchClause1.getBody().toString().contains("throw new")) {
-                                    exceptionBean.setType("Rethrow");
-                                } else if (catchClause1.getBody()==null||
-                                        catchClause1.getBody().toString().contains("log") ||
-                                        catchClause.toString().contains("Log")
-                                        ||StringUtil.replaceBlank(catchClause1.getBody().toString()).equals("{}")) {
-                                    exceptionBean.setType("Ignore_Log");
-                                } else {
-
-                                    exceptionBean.setType("Recover");
-                                }
-                            }
-                        }
-                        node1 = node1.getParent();
-                        while (!(node1 instanceof TryStatement
-                                || node1 instanceof ForStatement
-                                || node1 instanceof WhileStatement
-                                || node1 instanceof DoStatement
-                                || node1 instanceof SwitchStatement
-                                || node1 instanceof ThrowStatement
-                                || node1 instanceof IfStatement
-                                || node1 instanceof MethodDeclaration)) {
-                            node1 = node1.getParent();
-                        }
-                    }
-
-                    if (!hasType) {
-                        exceptionBean.setType("only_throws");
-                        node1 = node.getParent();
-                        while (!(node1 instanceof TryStatement
-                                || node1 instanceof ForStatement
-                                || node1 instanceof WhileStatement
-                                || node1 instanceof DoStatement
-                                || node1 instanceof SwitchStatement
-                                || node1 instanceof ThrowStatement
-                                || node1 instanceof IfStatement
-                                || node1 instanceof MethodDeclaration)) {
-                            node1 = node1.getParent();
-                        }
-
-                    }
-
-                    if(node1 instanceof ForStatement){
-                        exceptionBean.setHasForStat(true);
-                    }else{
-                        exceptionBean.setHasForStat(false);
-                    }
-
+                    exceptionBean.setHasForStat(hasForStat(node));
                     exceptionBean.setPackages(methodDeclaration.resolveBinding().getDeclaringClass().getPackage().getName());
                     //判断是不是有注释
-                    if (methodDeclaration.getJavadoc() != null) {
+                    if(methodDeclaration.getJavadoc()!=null){
                         exceptionBean.setMethodComment(methodDeclaration.getJavadoc().toString());
                     }
-
+                    List<String> eStrings = new ArrayList<String>();
+                    if (RootExceptionUtil.isOriginal(iTypeBinding.getName().toString())) {
+                        exceptionBean.setOrigin(true);
+                    }else {
+                        exceptionBean.setOrigin(false);
+                    }
+                    while (!iTypeBinding.getName().toString().equals("Exception")&&
+                            !iTypeBinding.getName().toString().equals("Throwable")) {
+                        if ( iTypeBinding.getSuperclass()!=null) {
+                            iTypeBinding = iTypeBinding.getSuperclass();
+                            eStrings.add(iTypeBinding.getName().toString());
+                            continue;
+                        }
+                        break;
+                    }
+                    exceptionBean.setParents(eStrings);
                     exceptionBeanList.add(exceptionBean);
                 }
-
             }
         }
     }
