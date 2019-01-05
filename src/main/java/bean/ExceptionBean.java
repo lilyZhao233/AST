@@ -12,7 +12,9 @@ public class ExceptionBean {
 
     private String block;                     //整体的方法的代码块
 
-    private String method;                    //调用方法的全名
+    private String rmethod;                    //调用方法的全名
+
+    private String rpackage;
 
     private String packages;                  //调用方法在调用文件的包名
 
@@ -24,6 +26,8 @@ public class ExceptionBean {
 
     private boolean isOrigin;                  //是不是java本身的异常
 
+    private String method;                     //方法本身信息
+
     private List<String> parents;              //该异常的父类
 
     public String getParentException(){
@@ -34,6 +38,16 @@ public class ExceptionBean {
             }
         }
         return str;
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ExceptionBean eb = (ExceptionBean) o;
+        return type.equals(eb.type) && thrown.equals(eb.thrown) && block.equals(eb.block) && method.equals(eb.method)
+                && packages.equals(eb.packages)  && hasForStat==eb.hasForStat && isOrigin==eb.isOrigin && rmethod.equals(eb.rmethod);
     }
     public List<String> getParents() {
         return parents;
@@ -82,6 +96,13 @@ public class ExceptionBean {
         this.block = block;
     }
 
+    public String getRmethod() {
+        return rmethod;
+    }
+
+    public void setRmethod(String rmethod) {
+        this.rmethod = rmethod;
+    }
     public String getMethod() {
         return method;
     }
@@ -90,6 +111,13 @@ public class ExceptionBean {
         this.method = method;
     }
 
+    public String getRpackage() {
+        return rpackage;
+    }
+
+    public void setRpackage(String rpackage) {
+        this.rpackage = rpackage;
+    }
     public String getPackages() {
         return packages;
     }

@@ -17,7 +17,7 @@ public class MethodDeclarationVisitor extends ASTVisitor{
 
     public MethodDeclarationVisitor(List<ExceptionBean> exceptionBeans,List<CommentException> commentExceptions,Map<String,String> comments) {
         this.commentExceptions=commentExceptions;
-        exceptionBeanList=exceptionBeans;
+        this.exceptionBeanList=exceptionBeans;
         this.comments=comments;
     }
 
