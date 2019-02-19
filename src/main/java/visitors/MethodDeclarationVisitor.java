@@ -34,7 +34,6 @@ public class MethodDeclarationVisitor extends ASTVisitor{
 
             //判断是不是测试文件
             MarkerAnnotationVisitor anotv = new MarkerAnnotationVisitor();
-            node.accept(anotv);
             if (!anotv.test) {
                 //接下来遍历所有的方法调用和新建对象的语句，判断他们是不是抛出异常
                 MethodInvocationVisitor methodInvocationVisitor=new MethodInvocationVisitor(exceptionBeanList,node,comments);

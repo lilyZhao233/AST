@@ -23,8 +23,13 @@ import visitors.MethodDeclarationVisitor;
 public class ASTTester {
 
     public static void main(String[] args) throws CoreException, SQLException, ClassNotFoundException {
+//        tomcat: C:\Users\MIC\Documents\experiment project\tomcat\tomcatsrc\java
+//        HBase: C:\Users\MIC\Documents\experiment project\hbase-2.0.4\hbase-archetypes\hbase-client-project\src\main\java
+//        hbase-error-prone,hbase-client,hbase-common,hbase-endpoint,hbase-examples,hbase-external-blockcache,hbase-hadoop2-compat,hbase-hadoop-compat
+//        hbase-http,hbase-mapreduce,hbase-metrics,hbase-metrics-api,hbase-procedure,hbase-protocol,hbase-protocol-shaded,hbase-replication,
+//        hbase-rest,hbase-rsgroup,hbase-server,hbase-thrift,hbase-zookeeper
         String[] classpath = {"C:\\Users\\MIC\\Documents\\experiment project\\tomcat\\tomcatsrc\\lib"};
-        File dir=new File("C:\\Users\\MIC\\Documents\\experiment project\\tomcat\\tomcatsrc\\java");
+        File dir=new File("C:\\Users\\MIC\\Documents\\experiment project\\tomcat\\tomcatsrc\\java" );
 //       List<String> strings=new ArrayList<String>();
 //       getSources(dir,strings);
        String [] sources={"C:\\Users\\MIC\\Documents\\experiment project\\tomcat\\tomcatsrc\\java"};
@@ -62,25 +67,25 @@ public class ASTTester {
             data.add(info);
             i++;
 
-            String method = exceptionBean.getMethod().substring(0,exceptionBean.getMethod().indexOf('(')).replace("."," ").replace("#"," ");
-            String rmethod = exceptionBean.getRmethod().substring(0,exceptionBean.getRmethod().indexOf('(')).replace("."," ").replace("#"," ");
-            String thrown = exceptionBean.getThrown().replace("."," ");
+//            String method = exceptionBean.getMethod().substring(0,exceptionBean.getMethod().indexOf('(')).replace("."," ").replace("#"," ");
+//            String rmethod = exceptionBean.getRmethod().substring(0,exceptionBean.getRmethod().indexOf('(')).replace("."," ").replace("#"," ");
+//            String thrown = exceptionBean.getThrown().replace("."," ");
             String exceptionComm = "";
-            if(exceptionBean.getExceptionComment()!=null) {
-                exceptionComm = exceptionBean.getExceptionComment().split("\n")[1];
-                Pattern pattern = Pattern.compile("<[^>]+>");//去除html标签
-                Matcher matcher = pattern.matcher(exceptionComm);
-                exceptionComm = matcher.replaceAll("");
-                exceptionComm = exceptionComm.replaceAll("[\\pP]"," ").toLowerCase();//去除标点符号
-
-            }
-            str=
-                    exceptionBean.getType()+"\t"
-                            +exceptionBean.getRmethod().substring(0,exceptionBean.getRmethod().indexOf('#')) +". "
-//                            +rmethod+" "
-                            + exceptionBean.getMethod().substring(0,exceptionBean.getMethod().indexOf('#')) +". "
-//                            + method +" "
-                            + thrown+" "+exceptionBean.getParentException()+" "+exceptionComm+"\n";
+//            if(exceptionBean.getExceptionComment()!=null) {
+//                exceptionComm = exceptionBean.getExceptionComment().split("\n")[1];
+//                Pattern pattern = Pattern.compile("<[^>]+>");//去除html标签
+//                Matcher matcher = pattern.matcher(exceptionComm);
+//                exceptionComm = matcher.replaceAll("");
+//                exceptionComm = exceptionComm.replaceAll("[\\pP]"," ").toLowerCase();//去除标点符号
+//
+//            }
+//            str=
+//                    exceptionBean.getType()+"\t"
+//                            +exceptionBean.getRmethod().substring(0,exceptionBean.getRmethod().indexOf('#')) +". "
+////                            +rmethod+" "
+//                            + exceptionBean.getMethod().substring(0,exceptionBean.getMethod().indexOf('#')) +". "
+////                            + method +" "
+//                            + thrown+" "+exceptionBean.getParentException()+" "+exceptionComm+"\n";
             result2 +=
                     "ID "+i+"========================================================================="+
                     "type: "+exceptionBean.getType()+"\n"+
@@ -95,24 +100,15 @@ public class ASTTester {
                     "catch: \n"+exceptionBean.getCatched()+"\n"+
                     "block: \n"+exceptionBean.getBlock()+"\n";
             result += str;
-            result1 += //method+" "+rmethod+" "+
-                       thrown+" "+exceptionBean.getParentException()+" "+ exceptionComm+"\n";
 
         }
         connection.close();
-          WriteToFileUtil.write("tomcatEx_package-0102.txt",result);
-//          WriteToFileUtil.write("tomcatExWord2vec-0102.txt",result1);
-//          WriteToFileUtil.write("tomcatOri-1216.txt",result2);
+//          WriteToFileUtil.appendWrite("HBaseEx_package-0102.txt",result);
+
+         WriteToFileUtil.appendWrite("Tomcat\\TomcatOri-0218.txt",result2);
 //
-//          WriteToExcelUtil.writeEx(data,"tomcatException-1121.xlsx");
-////        PreparedStatement psql;
-////        psql = SQLUtil.getCon("RH_Exception").prepareStatement("insert into e_comment (name,comment) "
-////                + "values(?,?)");
-////        for(CommentException exception:commentExceptions){
-////            psql.setString(1,exception.getExceptionName());
-////            psql.setString(2,exception.getExceptionComment());
-////            psql.executeUpdate();
-////        }
+          WriteToExcelUtil.writeEx(data,"Tomcat\\TomcatEx-0218.xlsx");
+//
     }
 
     private static void parseJavaFile(File file, List<ExceptionBean> exceptionBeans,List<CommentException> commentExceptions,String sources[],String []classpath,Map<String,String> comments) {
@@ -132,9 +128,10 @@ public class ASTTester {
 
             parser.setCompilerOptions(options);
 
-            parser.setEnvironment(classpath, sources, new String[] { "UTF-8"}, true);
+            parser.setEnvironment(classpath, sources, null, true);
             parser.setSource(str.toCharArray());
             parser.setUnitName(file.getName());
+            parser.setResolveBindings(true);
 
             CompilationUnit cu = (CompilationUnit) parser.createAST(null);
 

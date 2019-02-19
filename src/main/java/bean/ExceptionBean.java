@@ -46,8 +46,9 @@ public class ExceptionBean {
         if (o == null || getClass() != o.getClass()) return false;
 
         ExceptionBean eb = (ExceptionBean) o;
-        return type.equals(eb.type) && thrown.equals(eb.thrown) && block.equals(eb.block) && method.equals(eb.method)
-                && packages.equals(eb.packages)  && hasForStat==eb.hasForStat && isOrigin==eb.isOrigin && rmethod.equals(eb.rmethod);
+        return type.equals(eb.type) && thrown.equals(eb.thrown) && block.equals(eb.block)
+//                && method.equals(eb.method) && packages.equals(eb.packages)
+                && hasForStat==eb.hasForStat && isOrigin==eb.isOrigin && rmethod.equals(eb.rmethod);
     }
     public List<String> getParents() {
         return parents;

@@ -1,9 +1,10 @@
 package util;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
+import jxl.Sheet;
 import jxl.Workbook;
 import jxl.write.Label;
 import jxl.write.WritableSheet;
@@ -18,17 +19,22 @@ public class WriteToExcelUtil {
      * @param data
      * @param writeUrl
      */
+
+
     public static void writeEx(List<String[]> data, String writeUrl){
         WritableWorkbook wwb = null;
         String file =writeUrl;
         try {
             // 创建可写入的工作簿对象
-             wwb= Workbook.createWorkbook(new File(file));
+
+            wwb= Workbook.createWorkbook(new File(file));
             if (wwb != null) {
                 // 在工作簿里创建可写入的工作表，第一个参数为工作表名，第二个参数为该工作表的所在位置
                 WritableSheet ws = wwb.createSheet("test", 0);
+
                 if (ws != null) {
                     /* 添加表结构 */
+
                     for (int i=0;i<data.size();i++) {// 行
                         for (int j=0;j<data.get(i).length;j++) { // 列
                             // Label构造器中有三个参数，第一个为列，第二个为行，第三个则为单元格填充的内容
@@ -56,6 +62,36 @@ public class WriteToExcelUtil {
             }
         }
     }
+
+//    public static void AppendWriteExel(List<String[]> data, String writeUrl){
+//        File file = new File(writeUrl);
+//        FileOutputStream out ;
+//        try{
+//
+//            Workbook workbook = WorkbookFactory.create(file);
+//
+//
+//            Sheet sheet = workbook.getSheetAt(0);
+//            int hasRow = sheet.getLastRowNum();
+//            if(sheet!=null){
+//                for (int i=0;i<data.size();i++) {// 行
+//                    Row row = sheet.createRow(hasRow+1+i);
+//                    for (int j = 0; j < data.get(i).length; j++) {//列
+//                        row.createCell(j).setCellValue(data.get(i)[j]);
+//                    }
+//                }
+//            }
+//
+//            out = new FileOutputStream(file);
+//            workbook.write(out);
+//            out.close();
+//        }catch (Exception e){
+//            System.out.println("exception:"+e.getMessage());
+//        }
+//
+//    }
+
+
 //    public static void main(String[] args){
 //        String[] s = {"a","b","c","d"};
 //        String[] s1 = {"a","b","c","d"};

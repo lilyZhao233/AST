@@ -15,13 +15,14 @@ import java.util.*;
 public class callGraphTest {
     public static void main(String[] args) {
         callGraphTest obj = new callGraphTest();
-        File file = new File("tomcatException-1121.xlsx");
-        WriteToFileUtil.write("Exception-1212.dot",obj.readExcel(file));
+        File file = new File("Tomcat\\TomcatEx-0218.xlsx");
+        WriteToFileUtil.write("Tomcat\\TomcatEx-0218.txt",obj.readExcel(file));
     }
 
     public String readExcel(File file) {
-        String str = "digraph \"DirectedGraph\" {\n";
-        str += ("graph [label = \"" + "test" + "\", labelloc=t, concentrate = true];\n");
+        String str = "";
+//                "digraph \"DirectedGraph\" {\n";
+//        str += ("graph [label = \"" + "test" + "\", labelloc=t, concentrate = true];\n");
         try {
             // 创建输入流，读取Excel
             InputStream is = new FileInputStream(file.getAbsolutePath());
@@ -38,25 +39,25 @@ public class callGraphTest {
                 String rMethodInfo = sheet.getCell(2, i).getContents();
                 String rException = sheet.getCell(3, i).getContents();
                 String rType = sheet.getCell(4, i).getContents();
-                set.add(MethodInfo+" "+rException+" "+rType);
+                set.add(rType+"/"+rException+"/"+MethodInfo);
                 boolean flag = false;
                 String str1="";
-                for (int j = 1; j < sheet.getRows(); j++) {//遍历得到rMethod对于异常的处理方式。
+                for (int j = 1; j < n; j++) {//遍历得到rMethod对于异常的处理方式。
                     String MethodInfo1 = sheet.getCell(1, j).getContents();
                     String rException1 = sheet.getCell(3, j).getContents();
                     if (rMethodInfo.equals(MethodInfo1) && rException.equals(rException1)) {
                         flag = true;
                         String rType1 = sheet.getCell(4,j).getContents();
-                        set.add(rMethodInfo+" "+rException+" "+rType1);
-                        str1 = "\""+rMethodInfo+" "+rException+" "+rType1+"\" -> \""
-                                +MethodInfo+" "+rException+" "+rType+"\"\n";
+                        set.add(rType1+"/"+rException+"/"+rMethodInfo);
+                        str1 = "\""+rType1+"/"+rException+"/"+rMethodInfo+"\" -> \""
+                                +rType+"/"+rException+"/"+MethodInfo+"\"\n";
                         break;
                     }
                 }
                 if(!flag){
-                    set.add(rMethodInfo+" "+rException+" only_throws");
-                    str1 = "\""+rMethodInfo+" "+rException+" only_throws"+"\" -> \""
-                            +MethodInfo+" "+rException+" "+rType+"\"\n";
+                    set.add("only_throws"+"/"+rException+"/"+rMethodInfo);
+                    str1 = "\""+"only_throws"+"/"+rException+"/"+rMethodInfo+"\" -> \""
+                            +rType+"/"+rException+"/"+MethodInfo+"\"\n";
                 }
                 String[] info = str1.replace("\n","").split(" -> ");
 
@@ -86,7 +87,7 @@ public class callGraphTest {
 //                }
 //                str += all;
 //            }
-            str += "}\n";
+//            str += "}\n";
 
             return str;
 
