@@ -56,7 +56,7 @@ public class ExceptionData {
         Map<String,Integer> LabelS = new HashMap<String, Integer>();
         Map<String,List<Map<String,Integer>>> Statistic = new HashMap<String, List<Map<String, Integer>>>();
         List<String[]> data= new ArrayList<String[]>();
-        String[] head = {"exception","p1","p1","location","p2","p2","location","p3","p3","location"};
+        String[] head = {"exception","function","class","package","module","label"};
         data.add(head);
         for(String key : map.keySet()){
             if(map.get(key)==null) {
@@ -65,21 +65,21 @@ public class ExceptionData {
                 if(!info[0].equals("only_throws") && Bmap.get(key)!=null) {
                     continue;//保证异常的正常传播
                 }
-
-//                temp.add(info[0].substring(0,info[0].indexOf('#')));//类结构
                 temp.add(key);
 
                 List<List<String>> result = new ArrayList<List<String>>();
                 getExceptionLink(key, Bmap, temp, result);
                 StringBuilder sb = new StringBuilder();
                 for(int i=0; i<result.size(); i++){
-                    String lastHandler = result.get(i).get(result.get(i).size()-1).split("/")[0];
+                    String end = result.get(i).get(result.get(i).size()-1);
+                    String lastHandler = end.split("/")[0];
                     if(lastHandler.equals("log and throw")
                             ||lastHandler.equals("catch and Ignore")){//过滤反模式异常处理方式
                         break;
                     }
-                    List<String> r = new ArrayList<String>();
-//                    String str = info[2].split("#")[0];
+                    String[] data1 = new String[7];
+                    data1[0] = info[1].replace("."," ");
+
                     boolean flag3 = false;
                     for(String key1 : SOURCE_PACKAGE){
                         if(info[2].startsWith(key1)){
@@ -88,112 +88,107 @@ public class ExceptionData {
                         }
                     }
                     String pc,pack;
-                    if(flag3) {
-                        r.add(result.get(i).get(1));
-                        pc = result.get(i).get(1).split("/")[2].split("#")[0];
+                    if(flag3) {//异常发生点
+                        pc = result.get(i).get(1).split("/")[2];
                         pack = pc.substring(0,pc.lastIndexOf(".")+1);
                     }else {
-                        r.add(result.get(i).get(1));
-                        pc = result.get(i).get(0).split("/")[2].split("#")[0];
+                        pc = result.get(i).get(0).split("/")[2];
                         pack = pc.substring(0,pc.lastIndexOf(".")+1);
                     }
+//                  方法特征
 
-                    int j=1;
-                    while(j<result.get(i).size()) {//提取每条链中的信息
-                        String pc1 = result.get(i).get(j).split("/")[2].split("#")[0];
-                        String pack1 = pc1.substring(0,pc1.lastIndexOf(".")+1);
-                        if(!pack.equals(pack1)){
-                            pack = pack1;
-                            r.add(result.get(i).get(j-1));//保存同一包下的始末信息
-                            r.add(result.get(i).get(j));
-                        }
-                        j++;
+                    String func = pc.split("#")[1].substring(0,pc.split("#")[1].indexOf('('));
+                    String[] ss = func.split("(?<!^)(?=[A-Z])");
+                    for(int k = 0 ;k < ss.length; k ++){
+                        if(ss[k].length()>1)
+                            if(data1[1]==null) data1[1] = ss[k].toLowerCase();
+                            else data1[1] += " "+ss[k].toLowerCase();
+                        else data1[1] += ss[k].toLowerCase();
                     }
-                    r.add(result.get(i).get(result.get(i).size()-1));
-                    String[] data1 = new String[30];
-                    data1[0] = info[1].replace("."," ");
-                    int n = 1;
-                    if(r.size()==1){
-                        data1[1] = r.get(0).split("/")[2];
-                        data1[2] = data1[1];
-                        if(r.get(0).split("/")[0].equals("only_throws")) data1[3]="0";
-                        else data1[3]="1";
+//                  类特征
+                    String s = pc.split("#")[0];
+                    ss = s.substring(s.lastIndexOf(".")+1,s.length()).split("(?<!^)(?=[A-Z])");
+                    for(int k = 0 ;k < ss.length; k ++){
+                        if(ss[k].length()>1)
+                            if(data1[2]==null) data1[2] = ss[k].toLowerCase();
+                            else data1[2] += " "+ss[k].toLowerCase();
+                        else data1[2] += ss[k].toLowerCase();
                     }
-                    else {
-                        for(int k=0; k<r.size()-1; k+=2){
-                            data1[n] = r.get(k).split("/")[2];
-                            String[] info1 = r.get(k+1).split("/");
-                            data1[n+1] = info1[2];
-                            if(info1[0].equals("only_throws")) data1[n+2] = "0";
-                            else {
-                                if(info1[2].equals(r.get(k).split("/")[2])) data1[n+2]="1";//方法中立即处理
-                                else if(data1[n].equals(r.get(k).split("/")[2].split("#")[0])) data1[n+2] = "2";//同一类中处理
-                                else data1[n+2] = "3";
+                    String sss;
+                    if(s.indexOf(".")==-1) sss = s;
+                    else sss = s.substring(0,s.lastIndexOf("."));
+                    data1[3] = sss.substring(sss.lastIndexOf(".")+1,sss.length());//包
+                    if(sss.indexOf(".")==-1) data1[4] = data1[3];
+                    else data1[4] = sss.substring(0,sss.lastIndexOf(".")).replace("."," ");//模块
+
+                    if(lastHandler.equals("only_throws")) data1[5] = "0";
+                    else {//是否在方法中直接处理
+                        String endInfo = end.split("/")[2];
+                        if(pc.equals(endInfo)) data1[5] = "1";
+                        else {//是否在类中处理
+                            String endc = endInfo.split("#")[0];
+                            if(s.substring(s.lastIndexOf(".")+1,s.length()).equals(endc.substring(endc.lastIndexOf(".")+1,endc.length()))) data1[5] = "2";
+                            else {//是否在包中处理
+                                boolean tag;
+                                if(endc.indexOf(".")==-1) tag= sss.equals(endc);
+                                else tag = endc.substring(0,endc.lastIndexOf(".")).equals(sss);
+                                if(tag) data1[5] = "3";
+                                else {//是否在模块中处理
+                                    if(sss.replaceFirst(".","/").split("/")[0].
+                                            equals(endc.replaceFirst(".","/").split("/")[0])) data1[5] = "4";
+                                    else data1[5] = "5";
+                                }
                             }
-                            n = n+3;
                         }
+
                     }
-                    data.add(data1);
-//                    for(String s : result.get(i)){
-//                        sb.append(s+" ");
-//                    }
-//                    sb.append(info[1].replace("."," ")+"\n");//添加异常
 
-
-                    //统计每个异常在哪一层处理
-//                    List<Map<String,Integer>> newAdd = new LinkedList<Map<String, Integer>>();
-//                    if(Statistic.containsKey(info[1])){
-//                        newAdd = Statistic.get(info[1]);
-//                        for(Map<String,Integer> smap: newAdd){
-//                            if(smap.containsKey(label)){
-//                                smap.put(label,smap.get(label)+1);
-//                            }else smap.put(label,1);
+//                    int j=1;
+//                    while(j<result.get(i).size()) {//提取每条链中的信息
+//                        String pc1 = result.get(i).get(j).split("/")[2].split("#")[0];
+//                        String pack1 = pc1.substring(0,pc1.lastIndexOf(".")+1);
+//                        if(!pack.equals(pack1)){
+//                            pack = pack1;
+//                            r.add(result.get(i).get(j-1));//保存同一包下的始末信息
+//                            r.add(result.get(i).get(j));
 //                        }
-//                        Statistic.put(info[1],newAdd);
-//                    }else {
-//                        Map<String,Integer> firstnew = new HashMap<String, Integer>();
-//                        firstnew.put(label,1);
-//                        newAdd.add(firstnew);
-//                        Statistic.put(info[1],newAdd);
+//                        j++;
 //                    }
+//                    r.add(result.get(i).get(result.get(i).size()-1));
+////                    String[] data1 = new String[30];
+//                    data1[0] = info[1].replace("."," ");
+//                    int n = 1;
+//                    if(r.size()==1){
+//                        data1[1] = r.get(0).split("/")[2];
+//                        data1[2] = data1[1];
+//                        if(r.get(0).split("/")[0].equals("only_throws")) data1[3]="0";
+//                        else data1[3]="1";
+//                    }
+//                    else {
+//                        for(int k=0; k<r.size()-1; k+=2){
+//                            data1[n] = r.get(k).split("/")[2];
+//                            String[] info1 = r.get(k+1).split("/");
+//                            data1[n+1] = info1[2];
+//                            if(info1[0].equals("only_throws")) data1[n+2] = "0";
+//                            else {
+//                                if(info1[2].equals(r.get(k).split("/")[2])) data1[n+2]="1";//方法中立即处理
+//                                else if(data1[n].equals(r.get(k).split("/")[2].split("#")[0])) data1[n+2] = "2";//同一类中处理
+//                                else data1[n+2] = "3";
+//                            }
+//                            n = n+3;
+//                        }
+//                    }
+                    data.add(data1);
+
                 }//for
 
 //                WriteToFileUtil.appendWrite("HBaseExCallGraph-0116.txt",sb.toString());
 
-                //单独保存jdk引起的异常链信息
-//                boolean flag = false;
-//                for(String pkg: SOURCE_PACKAGE){
-//                    if(key.startsWith(pkg)) {
-//                        flag=true;
-//                        break;
-//                    }
-//                }
-//                if(flag){
-//                    String s1="";
-////                     s1 = key.substring(0,key.indexOf(')')+1);//函数调用图
-//                     s1 = key.substring(0,key.indexOf('#'));//类调用
-////                    String temp1 = key.substring(0,key.indexOf('#'));
-////                    if(temp1.lastIndexOf('.')==-1) s1 = ".";
-////                    else s1  = temp1.substring(0,temp1.lastIndexOf('.'));
-//                    set.add("\""+s1+"\"\n");
-//                    if(Bmap.get(key)!=null){
-//                        for(Object s: Bmap.get(key)){
-//                            String s2 = "";
-////                             s2 = String.valueOf(s).substring(0,String.valueOf(s).indexOf(')')+1);
-//                             s2 = String.valueOf(s).substring(0,String.valueOf(s).indexOf('#'));
-////                            String temp2 = String.valueOf(s).substring(0,String.valueOf(s).indexOf('#'));
-////                            if(temp2.lastIndexOf('.')==-1) s2 = ".";
-////                            else s2 = temp2.substring(0,temp2.lastIndexOf('.'));
-//                            String news = "\""+s1+"\" -> \""+s2+"\"\n";
-//                            if(!stringBuilder.toString().contains(news))
-//                                stringBuilder.append(news);
-//                        }
-//                    }
-//                }
+
             }//if(map.get(key)==null)
         }//for
 
-        WriteToExcelUtil.writeEx(data,"Tomcat\\tomcatStatic-0218.xlsx");
+        WriteToExcelUtil.writeEx(data,"Tomcat\\tomcatStatic-0221.xlsx");
     }
 //    递归
     public static void getExceptionLink(String key, Map<String,List> Bmap, List<String> temp, List<List<String>> result){
@@ -204,8 +199,6 @@ public class ExceptionData {
         else{
             for(Object s : Bmap.get(key)){
                 String s1 = String.valueOf(s);
-//                if(temp.contains(s1.substring(0,s1.indexOf('#'))+" "+s1.split(" ")[2])) continue;//避免环
-//                temp.add(s1.substring(0,s1.indexOf('#'))+" "+s1.split(" ")[2]);//保留函数信息
                 if(temp.contains(s1)) continue;//避免环
                 temp.add(s1);
                 getExceptionLink(s1,Bmap,temp,result);

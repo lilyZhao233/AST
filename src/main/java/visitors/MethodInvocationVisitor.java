@@ -134,6 +134,7 @@ public class MethodInvocationVisitor extends ASTVisitor{
                                             || catchClause1.getBody().toString().contains("printStackTrace")) {
                                         exceptionBean.setType("Log");
                                     } else {exceptionBean.setType("Recover");}
+                                    break;//找到了该异常的处理方式
                                 }
                             }
                             break;
