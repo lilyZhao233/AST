@@ -1,5 +1,6 @@
 package test;
 
+import util.RegexUtil;
 import util.StringUtil;
 import util.WriteToExcelUtil;
 import util.WriteToFileUtil;
@@ -19,7 +20,7 @@ public class ExceptionData {
 
 
     public static void main(String[] args) {
-        String path = "Tomcat\\TomcatEx-0218.txt";
+        String path = "Tomcat/TomcatEx-0226.txt";
         Map<String,List> Bmap= new HashMap<String,List>();//节点被调用
         Map<String,List> map = new HashMap<String, List>();//节点调用了哪些节点；当value值为null表示该节点为底层节点
         try{
@@ -72,6 +73,10 @@ public class ExceptionData {
                 StringBuilder sb = new StringBuilder();
                 for(int i=0; i<result.size(); i++){
                     String end = result.get(i).get(result.get(i).size()-1);
+//                    if(result.get(i).size()>2){
+//                        String nextToLast = result.get(i).get(result.get(i).size()-2);
+//                    }
+
                     String lastHandler = end.split("/")[0];
                     if(lastHandler.equals("log and throw")
                             ||lastHandler.equals("catch and Ignore")){//过滤反模式异常处理方式
@@ -98,22 +103,12 @@ public class ExceptionData {
 //                  方法特征
 
                     String func = pc.split("#")[1].substring(0,pc.split("#")[1].indexOf('('));
-                    String[] ss = func.split("(?<!^)(?=[A-Z])");
-                    for(int k = 0 ;k < ss.length; k ++){
-                        if(ss[k].length()>1)
-                            if(data1[1]==null) data1[1] = ss[k].toLowerCase();
-                            else data1[1] += " "+ss[k].toLowerCase();
-                        else data1[1] += ss[k].toLowerCase();
-                    }
+                    data1[1] = RegexUtil.splitName(func);
 //                  类特征
                     String s = pc.split("#")[0];
-                    ss = s.substring(s.lastIndexOf(".")+1,s.length()).split("(?<!^)(?=[A-Z])");
-                    for(int k = 0 ;k < ss.length; k ++){
-                        if(ss[k].length()>1)
-                            if(data1[2]==null) data1[2] = ss[k].toLowerCase();
-                            else data1[2] += " "+ss[k].toLowerCase();
-                        else data1[2] += ss[k].toLowerCase();
-                    }
+                    String ss = s.substring(s.lastIndexOf(".")+1,s.length());
+                    data1[2] = RegexUtil.splitName(ss);
+
                     String sss;
                     if(s.indexOf(".")==-1) sss = s;
                     else sss = s.substring(0,s.lastIndexOf("."));
@@ -188,7 +183,7 @@ public class ExceptionData {
             }//if(map.get(key)==null)
         }//for
 
-        WriteToExcelUtil.writeEx(data,"Tomcat\\tomcatStatic-0221.xlsx");
+        WriteToExcelUtil.writeEx(data,"Tomcat/tomcatStatic-0227.xls");
     }
 //    递归
     public static void getExceptionLink(String key, Map<String,List> Bmap, List<String> temp, List<List<String>> result){

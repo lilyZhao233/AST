@@ -15,8 +15,8 @@ import java.util.*;
 public class callGraphTest {
     public static void main(String[] args) {
         callGraphTest obj = new callGraphTest();
-        File file = new File("Tomcat\\TomcatEx-0218.xlsx");
-        WriteToFileUtil.write("Tomcat\\TomcatEx-0218.txt",obj.readExcel(file));
+        File file = new File("Tomcat/TomcatEx-0226.xlsx");
+        WriteToFileUtil.write("Tomcat/TomcatEx-0226.txt",obj.readExcel(file));
     }
 
     public String readExcel(File file) {
@@ -48,9 +48,17 @@ public class callGraphTest {
                     if (rMethodInfo.equals(MethodInfo1) && rException.equals(rException1)) {
                         flag = true;
                         String rType1 = sheet.getCell(4,j).getContents();
-                        set.add(rType1+"/"+rException+"/"+rMethodInfo);
-                        str1 = "\""+rType1+"/"+rException+"/"+rMethodInfo+"\" -> \""
-                                +rType+"/"+rException+"/"+MethodInfo+"\"\n";
+
+                        if(!rType1.equals("only_throws")&&rType.equals("only_throws")){//catch后throw异常
+                            set.add("only_throws"+"/"+rException+"/"+rMethodInfo);
+                            str1 = "\""+"only_throws"+"/"+rException+"/"+rMethodInfo+"\" -> \""
+                                    +rType+"/"+rException+"/"+MethodInfo+"\"\n";
+                        }else {
+                            set.add(rType1+"/"+rException+"/"+rMethodInfo);
+                            str1 = "\""+rType1+"/"+rException+"/"+rMethodInfo+"\" -> \""
+                                    +rType+"/"+rException+"/"+MethodInfo+"\"\n";
+                        }
+
                         break;
                     }
                 }

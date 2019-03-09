@@ -75,7 +75,7 @@ public class MethodInvocationVisitor extends ASTVisitor{
             m=((ClassInstanceCreation) node).resolveConstructorBinding();
         }
 
-        if(m!=null){
+        if(m!=null&&methodDeclaration.resolveBinding()!=null){
             //判断是否原方法是不是抛出异常
             ITypeBinding exceptionTypes[]= m.getExceptionTypes();
             if(exceptionTypes.length>0){
@@ -85,14 +85,9 @@ public class MethodInvocationVisitor extends ASTVisitor{
                     ASTNode node1=node.getParent();
                     List<String> eStrings = new ArrayList<String>();
                     ITypeBinding iTypeBinding1 = iTypeBinding;
-                    while (!iTypeBinding.getName().toString().equals("Exception") ){
-                            //&& !iTypeBinding1.getName().toString().equals("Throwable")){
-                        if ( iTypeBinding1.getSuperclass()!=null) {
-                            iTypeBinding1 = iTypeBinding1.getSuperclass();
-                            eStrings.add(iTypeBinding1.getName().toString());
-                            continue;
-                        }
-                        break;
+                    while(iTypeBinding1.getSuperclass()!=null && !iTypeBinding1.getSuperclass().getName().toString().equals("Exception")){
+                        iTypeBinding1 = iTypeBinding1.getSuperclass();
+                        eStrings.add(iTypeBinding1.getName().toString());
                     }
                     exceptionBean.setParents(eStrings);
                     while(!(node1 instanceof MethodDeclaration)){//如果该节点不是方法声明节点则判断是不是try节点
@@ -108,10 +103,9 @@ public class MethodInvocationVisitor extends ASTVisitor{
                                         eStrings.contains(ex[ex.length-1])) {//已修改
                                     hasType = true;
                                     exceptionBean.setCatched(catchClause1.toString());
-                                    System.out.println(catchClause1.getBody().getLength());
-                                    System.out.println(catchClause1.getBody());
+
                                     if (catchClause1.getBody().toString().contains("throw new")) {
-                                        exceptionBean.setType("Rethrow");
+                                        exceptionBean.setType("1");
 
                                     }else if(catchClause1.getBody().toString().contains("throw")){
                                         if(catchClause1.getBody().toString().contains("log")
@@ -120,7 +114,7 @@ public class MethodInvocationVisitor extends ASTVisitor{
                                             exceptionBean.setType("log and throw");//反模式，记录并抛出
                                         }
                                         else {
-                                            exceptionBean.setType("Rethrow");
+                                            exceptionBean.setType("1");
                                         }
                                     }
                                     else if(catchClause1.getBody().getLength()<100&&catchClause1.getBody().toString().contains("return null")
@@ -132,16 +126,16 @@ public class MethodInvocationVisitor extends ASTVisitor{
                                             || catchClause1.getBody().toString().contains("LOG")
                                             || catchClause.toString().contains("Log")
                                             || catchClause1.getBody().toString().contains("printStackTrace")) {
-                                        exceptionBean.setType("Log");
-                                    } else {exceptionBean.setType("Recover");}
+                                        exceptionBean.setType("1");
+                                    } else {exceptionBean.setType("1");}
                                     break;//找到了该异常的处理方式
                                 }
                             }
                             break;
                         }
                     }
-                    String thrown=iTypeBinding.getPackage().getName()+"."+iTypeBinding.getName();//eg:java.io.IOException
-//                    String thrown = iTypeBinding.getName();
+//                    String thrown=iTypeBinding.getPackage().getName()+"."+iTypeBinding.getName();//eg:java.io.IOException
+                    String thrown = iTypeBinding.getName();
                     if(comments.containsKey(iTypeBinding.getName())){
                         exceptionBean.setExceptionComment(comments.get(iTypeBinding.getName()));
                     }
@@ -154,21 +148,20 @@ public class MethodInvocationVisitor extends ASTVisitor{
                     exceptionBean.setRpackage(m.getDeclaringClass().getPackage().getName()+".");
                     exceptionBean.setBlock(methodDeclaration.toString());
                     exceptionBean.setHasForStat(hasForStat(node));
-                    if(methodDeclaration.resolveBinding()!=null) {
-                        exceptionBean.setPackages(methodDeclaration.resolveBinding().getDeclaringClass().getPackage().getName());
-                        StringBuilder stringBuilder = new StringBuilder();
-                        if(!methodDeclaration.resolveBinding().getDeclaringClass().getPackage().getName().equals(""))
-                            stringBuilder.append(methodDeclaration.resolveBinding().getDeclaringClass().getPackage().getName());
-                        //函数信息包括：包、类、函数名
-                        if(!methodDeclaration.resolveBinding().getDeclaringClass().getTypeDeclaration().getName().equals(""))
-                            stringBuilder.append("."+methodDeclaration.resolveBinding().getDeclaringClass().getTypeDeclaration().getName());
-                        stringBuilder.append("#"+methodDeclaration.getName());
+                    exceptionBean.setPackages(methodDeclaration.resolveBinding().getDeclaringClass().getPackage().getName());
+                    StringBuilder stringBuilder = new StringBuilder();
+                    if(!methodDeclaration.resolveBinding().getDeclaringClass().getPackage().getName().equals(""))
+                        stringBuilder.append(methodDeclaration.resolveBinding().getDeclaringClass().getPackage().getName());
+                    //函数信息包括：包、类、函数名
+                    if(!methodDeclaration.resolveBinding().getDeclaringClass().getTypeDeclaration().getName().equals(""))
+                        stringBuilder.append("."+methodDeclaration.resolveBinding().getDeclaringClass().getTypeDeclaration().getName());
+                    stringBuilder.append("#"+methodDeclaration.getName());
 //                    //获得函数参数
-                        String methodDec = methodDeclaration.resolveBinding().getMethodDeclaration().toString();
-                        String parameter = methodDec.substring(methodDec.indexOf('('),methodDec.indexOf(')')+1);
-                        exceptionBean.setMethod(stringBuilder.toString()+parameter);
+                    String methodDec = methodDeclaration.resolveBinding().getMethodDeclaration().toString();
+                    String parameter = methodDec.substring(methodDec.indexOf('('),methodDec.indexOf(')')+1);
+                    exceptionBean.setMethod(stringBuilder.toString()+parameter);
 
-                    }
+
 
                     if (RootExceptionUtil.isOriginal(iTypeBinding1.getName().toString())) {
                         exceptionBean.setOrigin(true);
@@ -216,7 +209,7 @@ public class MethodInvocationVisitor extends ASTVisitor{
 //                        }
 //                    }
                     if(!hasType){
-                        exceptionBean.setType("only_throws");
+                        exceptionBean.setType("0");
                     }
                     //判断是不是有注释
                     if(methodDeclaration.getJavadoc()!=null){

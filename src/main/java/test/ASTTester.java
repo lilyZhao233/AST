@@ -24,19 +24,17 @@ public class ASTTester {
 
     public static void main(String[] args) throws CoreException, SQLException, ClassNotFoundException {
 //        tomcat: C:\Users\MIC\Documents\experiment project\tomcat\tomcatsrc\java
-//        HBase: C:\Users\MIC\Documents\experiment project\hbase-2.0.4\hbase-archetypes\hbase-client-project\src\main\java
-//        hbase-error-prone,hbase-client,hbase-common,hbase-endpoint,hbase-examples,hbase-external-blockcache,hbase-hadoop2-compat,hbase-hadoop-compat
-//        hbase-http,hbase-mapreduce,hbase-metrics,hbase-metrics-api,hbase-procedure,hbase-protocol,hbase-protocol-shaded,hbase-replication,
-//        hbase-rest,hbase-rsgroup,hbase-server,hbase-thrift,hbase-zookeeper
-        String[] classpath = {"C:\\Users\\MIC\\Documents\\experiment project\\tomcat\\tomcatsrc\\lib"};
-        File dir=new File("C:\\Users\\MIC\\Documents\\experiment project\\tomcat\\tomcatsrc\\java" );
+        String[] classpath = {"/Users/fudanlong/lilly/experiment project/tomcat/tomcatsrc/lib"};
+//        String[] classpath = {""};
+        File dir=new File("/Users/fudanlong/lilly/experiment project/tomcat/tomcatsrc/java" );
 //       List<String> strings=new ArrayList<String>();
 //       getSources(dir,strings);
-       String [] sources={"C:\\Users\\MIC\\Documents\\experiment project\\tomcat\\tomcatsrc\\java"};
+       String [] sources={"/Users/fudanlong/lilly/experiment project/tomcat/tomcatsrc/java"};
 //       strings.toArray(sources);
        List<File> fileList=new ArrayList<File>();
        FileFilter fileFilter=new Filterbyjava(".java");
        FileHandlers.getFileList(dir,fileList,fileFilter);
+
        List<ExceptionBean> exceptionBeans=new ArrayList<ExceptionBean>();
        List<CommentException> commentExceptions=new ArrayList<CommentException>();
        String sql="select * from e_comment";
@@ -67,54 +65,59 @@ public class ASTTester {
             data.add(info);
             i++;
 
-//            String method = exceptionBean.getMethod().substring(0,exceptionBean.getMethod().indexOf('(')).replace("."," ").replace("#"," ");
-//            String rmethod = exceptionBean.getRmethod().substring(0,exceptionBean.getRmethod().indexOf('(')).replace("."," ").replace("#"," ");
-//            String thrown = exceptionBean.getThrown().replace("."," ");
-            String exceptionComm = "";
-//            if(exceptionBean.getExceptionComment()!=null) {
-//                exceptionComm = exceptionBean.getExceptionComment().split("\n")[1];
-//                Pattern pattern = Pattern.compile("<[^>]+>");//去除html标签
-//                Matcher matcher = pattern.matcher(exceptionComm);
-//                exceptionComm = matcher.replaceAll("");
-//                exceptionComm = exceptionComm.replaceAll("[\\pP]"," ").toLowerCase();//去除标点符号
+            String methodstr = exceptionBean.getMethod().substring(0,exceptionBean.getMethod().indexOf('('));
+            String method = RegexUtil.splitName(methodstr).replace("."," ").replace("#"," ");
+//            拆分函数名，类名
+            String rmethodstr = exceptionBean.getRmethod().substring(0,exceptionBean.getRmethod().indexOf('('));
+            String rmethod = RegexUtil.splitName(rmethodstr).replace("."," ").replace("#"," ");
+            String thrown = exceptionBean.getThrown().replace("."," ");
+
+            String exceptionComm = RegexUtil.splitComment(exceptionBean.getExceptionComment());
+            String methodComm = RegexUtil.splitComment(exceptionBean.getMethodComment());
 //
-//            }
-//            str=
-//                    exceptionBean.getType()+"\t"
-//                            +exceptionBean.getRmethod().substring(0,exceptionBean.getRmethod().indexOf('#')) +". "
-////                            +rmethod+" "
-//                            + exceptionBean.getMethod().substring(0,exceptionBean.getMethod().indexOf('#')) +". "
-////                            + method +" "
-//                            + thrown+" "+exceptionBean.getParentException()+" "+exceptionComm+"\n";
-            result2 +=
-                    "ID "+i+"========================================================================="+
-                    "type: "+exceptionBean.getType()+"\n"+
-                    "package: "+exceptionBean.getPackages()+"\n"+
-                    "Method:"+exceptionBean.getMethod()+"\n"+
-                    "Rmethod: "+exceptionBean.getRmethod()+"\n"+
-                    "hasForStatement: "+exceptionBean.isHasForStat()+"\n"+
-                    "parentException: "+exceptionBean.getParentException()+"\n"+
-                    "thrown: "+exceptionBean.getThrown()+"\n"+
-                    "exception comment: "+exceptionBean.getExceptionComment()+"\n"+
-                    "method comment: "+exceptionBean.getMethodComment()+"\n"+
-                    "catch: \n"+exceptionBean.getCatched()+"\n"+
-                    "block: \n"+exceptionBean.getBlock()+"\n";
-            result += str;
+            if(exceptionBean.getType().equals("1") ){//|| exceptionBean.getType().equals("0")){
+                str=
+                        exceptionBean.getType()+"\t"
+//                                +exceptionBean.getRmethod().substring(0,exceptionBean.getRmethod().indexOf('#')) +". "
+//                            +rmethod+" "
+//                                + exceptionBean.getMethod().substring(0,exceptionBean.getMethod().indexOf('#')) +". "
+                            + method+" "+methodComm
+                                + thrown+" "+exceptionBean.getParentException()+" "+exceptionComm+"\n";
+                System.out.println(exceptionBean.getType());
+                result2 +=
+                        "ID "+i+"========================================================================="+
+                                "type: "+exceptionBean.getType()+"\n"+
+
+//                                "package: "+exceptionBean.getPackages()+"\n"+
+                                "Method:"+exceptionBean.getMethod()+"\n"+
+                                "Rmethod: "+exceptionBean.getRmethod()+"\n"+
+//                                "hasForStatement: "+exceptionBean.isHasForStat()+"\n"+
+                                "parentException: "+exceptionBean.getParentException()+"\n"+
+                                "thrown: "+exceptionBean.getThrown()+"\n"+
+                                "exception comment: "+exceptionBean.getExceptionComment()+"\n"+
+//                                "method comment: "+exceptionBean.getMethodComment()+"\n"+
+//                                "catch: \n"+exceptionBean.getCatched()+"\n"+
+                                "block: \n"+exceptionBean.getBlock()+"\n";
+            }
+
+
+            result += str.replaceAll(" {2,}"," ");
 
         }
         connection.close();
-//          WriteToFileUtil.appendWrite("HBaseEx_package-0102.txt",result);
+//          WriteToFileUtil.appendWrite("Hadoop/hadoopTrain-0305.txt",result);
 
-         WriteToFileUtil.appendWrite("Tomcat\\TomcatOri-0218.txt",result2);
+         WriteToFileUtil.appendWrite("Tomcat/TomcatOri.txt",result2);
 //
-          WriteToExcelUtil.writeEx(data,"Tomcat\\TomcatEx-0218.xlsx");
+//          WriteToExcelUtil.writeEx(data,"Hama/HamaEx-0226.xlsx");
 //
     }
 
-    private static void parseJavaFile(File file, List<ExceptionBean> exceptionBeans,List<CommentException> commentExceptions,String sources[],String []classpath,Map<String,String> comments) {
-        String str = null;
+    private static void parseJavaFile(File file, List<ExceptionBean> exceptionBeans,List<CommentException> commentExceptions,String[] sources,String[] classpath,Map<String,String> comments) {
+        String str = "";
         try {
             str = FileUtils.readFileToString(file);
+
             ASTParser parser = ASTParser.newParser(AST.JLS8);
             parser.setResolveBindings(true);
             parser.setKind(ASTParser.K_COMPILATION_UNIT);
@@ -124,13 +127,14 @@ public class ASTTester {
             options.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_1_8);
             options.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JavaCore.VERSION_1_8);
             options.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_1_8);
-            parser.setProject(null);
-
             parser.setCompilerOptions(options);
+
+            parser.setProject(null);
 
             parser.setEnvironment(classpath, sources, null, true);
             parser.setSource(str.toCharArray());
-            parser.setUnitName(file.getName());
+            parser.setUnitName(file.getAbsolutePath());
+
             parser.setResolveBindings(true);
 
             CompilationUnit cu = (CompilationUnit) parser.createAST(null);

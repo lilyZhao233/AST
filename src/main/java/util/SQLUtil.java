@@ -11,7 +11,7 @@ public class SQLUtil {
         String driver="com.mysql.jdbc.Driver";
         String url="jdbc:mysql://localhost:3306/"+database;
         String user = "root";
-        String password = "123456";
+        String password = "mysql123";
 
         Class.forName(driver);
         connection= DriverManager.getConnection(url, user,password);
