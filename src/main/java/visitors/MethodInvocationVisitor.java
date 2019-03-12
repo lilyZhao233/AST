@@ -4,6 +4,7 @@ import bean.ExceptionBean;
 import org.eclipse.jdt.core.dom.*;
 import util.RootExceptionUtil;
 import util.StringUtil;
+import util.WriteToFileUtil;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -27,16 +28,18 @@ public class MethodInvocationVisitor extends ASTVisitor{
     @Override
     public void endVisit(MethodInvocation node) {
         getExceptions(node);
+        SaveNode(node);
         super.endVisit(node);
     }
 
     /**
-     * 遍历改方法里面所有的new 对象的语句
+     * 遍历方法里面所有的new 对象的语句
      *  @param node
      */
     @Override
     public void endVisit(ClassInstanceCreation node){
         getExceptions(node);
+        SaveNode(node);
         super.endVisit(node);
     }
 
@@ -59,6 +62,28 @@ public class MethodInvocationVisitor extends ASTVisitor{
         return hasForStat;
     }
 
+    private void SaveNode(ASTNode node){
+
+        IMethodBinding m=null;
+        if (node instanceof MethodInvocation) {
+            m = ((MethodInvocation) node).resolveMethodBinding();
+        }
+        else if(node instanceof ClassInstanceCreation){
+            m=((ClassInstanceCreation) node).resolveConstructorBinding();
+        }
+        if(m!=null && methodDeclaration.resolveBinding()!=null){
+            String Rmethod = m.getDeclaringClass().getPackage().getName()+".";//+m.getDeclaringClass().getTypeDeclaration().getName();
+            String method = methodDeclaration.resolveBinding().getDeclaringClass().getPackage().getName()+".";
+            String edge = Rmethod+" "+method;
+            if(!Rmethod.equals(method)){
+                WriteToFileUtil.appendWrite("new.edgelist",edge);
+            }
+
+        }
+
+
+    }
+
     /**
      * 对node进行解析获得解析后我们所要的相关属性
      * @param node
@@ -75,7 +100,7 @@ public class MethodInvocationVisitor extends ASTVisitor{
             m=((ClassInstanceCreation) node).resolveConstructorBinding();
         }
 
-        if(m!=null&&methodDeclaration.resolveBinding()!=null){
+        if(m!=null && methodDeclaration.resolveBinding()!=null){
             //判断是否原方法是不是抛出异常
             ITypeBinding exceptionTypes[]= m.getExceptionTypes();
             if(exceptionTypes.length>0){

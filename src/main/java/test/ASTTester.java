@@ -24,12 +24,12 @@ public class ASTTester {
 
     public static void main(String[] args) throws CoreException, SQLException, ClassNotFoundException {
 //        tomcat: C:\Users\MIC\Documents\experiment project\tomcat\tomcatsrc\java
-        String[] classpath = {"/Users/fudanlong/lilly/experiment project/tomcat/tomcatsrc/lib"};
+        String[] classpath = {"C:\\Users\\MIC\\Documents\\experiment project"};
 //        String[] classpath = {""};
-        File dir=new File("/Users/fudanlong/lilly/experiment project/tomcat/tomcatsrc/java" );
+        File dir=new File("C:\\Users\\MIC\\Documents\\experiment project" );
 //       List<String> strings=new ArrayList<String>();
 //       getSources(dir,strings);
-       String [] sources={"/Users/fudanlong/lilly/experiment project/tomcat/tomcatsrc/java"};
+       String [] sources={"C:\\Users\\MIC\\Documents\\experiment project"};
 //       strings.toArray(sources);
        List<File> fileList=new ArrayList<File>();
        FileFilter fileFilter=new Filterbyjava(".java");
@@ -42,7 +42,10 @@ public class ASTTester {
        Connection connection = SQLUtil.getCon("RH_Exception");
        ResultSet resultSet=SQLUtil.getCon("RH_Exception").createStatement().executeQuery(sql);
         while (resultSet.next()){
-           comments.put(resultSet.getString("name"),resultSet.getString("comment"));
+            String excep = resultSet.getString("name");
+            String excepComm = resultSet.getString("comment");
+//            WriteToFileUtil.appendWrite("ExceptionComment.txt",RegexUtil.splitComment(excepComm).replaceAll(" {2,}"," "));
+            comments.put(excep,excepComm);
         }
        for(File file:fileList){
             parseJavaFile(file,exceptionBeans,commentExceptions,sources,classpath,comments);
@@ -55,6 +58,7 @@ public class ASTTester {
         String[] head = {"id","method","rMethod","rException","eType"};
         data.add(head);
         int i=0;
+        Set<String> m = new HashSet<String>();
         for(ExceptionBean exceptionBean:exceptionBeans){
             String[] info = new String[5];
             info[0] = String.valueOf(i);
@@ -65,39 +69,54 @@ public class ASTTester {
             data.add(info);
             i++;
 
-            String methodstr = exceptionBean.getMethod().substring(0,exceptionBean.getMethod().indexOf('('));
-            String method = RegexUtil.splitName(methodstr).replace("."," ").replace("#"," ");
+            String methodstr = exceptionBean.getMethod().substring(exceptionBean.getMethod().indexOf('#')+1 ,exceptionBean.getMethod().indexOf('('));
+            String method = RegexUtil.splitNameByshuxian(methodstr);
+            String PackClass = exceptionBean.getMethod().substring(0,exceptionBean.getMethod().indexOf('#'));
+            PackClass = RegexUtil.splitNameByBlank(PackClass).replace("."," ");
 //            拆分函数名，类名
-            String rmethodstr = exceptionBean.getRmethod().substring(0,exceptionBean.getRmethod().indexOf('('));
-            String rmethod = RegexUtil.splitName(rmethodstr).replace("."," ").replace("#"," ");
+//            String rmethodstr = exceptionBean.getRmethod().substring(0,exceptionBean.getRmethod().indexOf('('));
+//            String rmethod = RegexUtil.splitName(rmethodstr).replace("."," ").replace("#"," ");
             String thrown = exceptionBean.getThrown().replace("."," ");
 
             String exceptionComm = RegexUtil.splitComment(exceptionBean.getExceptionComment());
             String methodComm = RegexUtil.splitComment(exceptionBean.getMethodComment());
 //
-            if(exceptionBean.getType().equals("1") ){//|| exceptionBean.getType().equals("0")){
+            if(exceptionBean.getType().equals("1") || exceptionBean.getType().equals("0")){
                 str=
-                        exceptionBean.getType()+"\t"
-//                                +exceptionBean.getRmethod().substring(0,exceptionBean.getRmethod().indexOf('#')) +". "
-//                            +rmethod+" "
-//                                + exceptionBean.getMethod().substring(0,exceptionBean.getMethod().indexOf('#')) +". "
-                            + method+" "+methodComm
-                                + thrown+" "+exceptionBean.getParentException()+" "+exceptionComm+"\n";
-                System.out.println(exceptionBean.getType());
-                result2 +=
-                        "ID "+i+"========================================================================="+
-                                "type: "+exceptionBean.getType()+"\n"+
+                       exceptionBean.getType()+"\t"+
+//                               +exceptionBean.getRmethod().substring(0,exceptionBean.getRmethod().indexOf('#')) +". "
+//                           +rmethod+" "
+//                               + exceptionBean.getMethod().substring(0,exceptionBean.getMethod().indexOf('#')) +". "
+                               exceptionBean.getPackages()+" "+exceptionBean.getRpackage()+" "+
+                           method+" "+methodComm+" " +PackClass+" "+
+                             thrown.toLowerCase()+" "+exceptionBean.getParentException().toLowerCase()+" "+exceptionComm+"\n";
 
-//                                "package: "+exceptionBean.getPackages()+"\n"+
-                                "Method:"+exceptionBean.getMethod()+"\n"+
-                                "Rmethod: "+exceptionBean.getRmethod()+"\n"+
-//                                "hasForStatement: "+exceptionBean.isHasForStat()+"\n"+
-                                "parentException: "+exceptionBean.getParentException()+"\n"+
-                                "thrown: "+exceptionBean.getThrown()+"\n"+
-                                "exception comment: "+exceptionBean.getExceptionComment()+"\n"+
-//                                "method comment: "+exceptionBean.getMethodComment()+"\n"+
-//                                "catch: \n"+exceptionBean.getCatched()+"\n"+
-                                "block: \n"+exceptionBean.getBlock()+"\n";
+
+//                if(exceptionBean.getMethodComment()!=null&&!m.contains(exceptionBean.getMethod())){
+//                    m.add(exceptionBean.getMethod());
+//                    result1 += //exceptionBean.getMethodComment()+"\n"+
+//                            methodComm.replaceAll(" {2,}"," ")+"\n";
+//                }
+//                if(!m.contains(thrown)){
+//                    m.add(thrown);
+//                    result1 += thrown.toLowerCase() +" "+exceptionBean.getParentException().toLowerCase()+"\n";
+//
+//                }
+
+//                result2 +=
+//                        "ID "+i+"========================================================================="+
+//                                "type: "+exceptionBean.getType()+"\n"+
+//
+////                                "package: "+exceptionBean.getPackages()+"\n"+
+//                                "Method:"+exceptionBean.getMethod()+"\n"+
+//                                "Rmethod: "+exceptionBean.getRmethod()+"\n"+
+////                                "hasForStatement: "+exceptionBean.isHasForStat()+"\n"+
+//                                "parentException: "+exceptionBean.getParentException()+"\n"+
+//                                "thrown: "+exceptionBean.getThrown()+"\n"+
+//                                "exception comment: "+exceptionBean.getExceptionComment()+"\n"+
+////                                "method comment: "+exceptionBean.getMethodComment()+"\n"+
+////                                "catch: \n"+exceptionBean.getCatched()+"\n"+
+//                                "block: \n"+exceptionBean.getBlock()+"\n";
             }
 
 
@@ -105,9 +124,9 @@ public class ASTTester {
 
         }
         connection.close();
-//          WriteToFileUtil.appendWrite("Hadoop/hadoopTrain-0305.txt",result);
+          WriteToFileUtil.appendWrite("new.txt",result);
 
-         WriteToFileUtil.appendWrite("Tomcat/TomcatOri.txt",result2);
+//         WriteToFileUtil.appendWrite("HiveMethodComment.txt",result1);
 //
 //          WriteToExcelUtil.writeEx(data,"Hama/HamaEx-0226.xlsx");
 //

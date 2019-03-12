@@ -103,11 +103,11 @@ public class ExceptionData {
 //                  方法特征
 
                     String func = pc.split("#")[1].substring(0,pc.split("#")[1].indexOf('('));
-                    data1[1] = RegexUtil.splitName(func);
+                    data1[1] = RegexUtil.splitNameByBlank(func);
 //                  类特征
                     String s = pc.split("#")[0];
                     String ss = s.substring(s.lastIndexOf(".")+1,s.length());
-                    data1[2] = RegexUtil.splitName(ss);
+                    data1[2] = RegexUtil.splitNameByBlank(ss);
 
                     String sss;
                     if(s.indexOf(".")==-1) sss = s;

@@ -1,0 +1,6 @@
+org apache hive storage jdbc exception hivejdbcdatabaseaccessexception hivejdbcstorageexception
+org apache hive storage jdbc exception hivejdbcstorageexception
+org apache hive hcatalog streaming mutate worker recordsequenceexception workerexception
+org apache hadoop hive ql metadata Hiveexception
+org apache hive hcatalog streaming mutate worker grouprevisitedexception workerexception
+org apache hadoop hive accumulo columns invalidcolumnmappingexception illegalargumentexception
